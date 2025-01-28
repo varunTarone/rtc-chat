@@ -24,6 +24,7 @@ const io = new Server(httpServer, {
     origin: ["http://localhost:3000", "https://rtc-chat-client.vercel.app"],
     methods: ["GET", "POST"],
     allowedHeaders: ["Access-Control-Allow-Origin"],
+    credentials: true,
   }
 });
 
