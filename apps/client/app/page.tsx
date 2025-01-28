@@ -35,7 +35,7 @@ interface ClientToServerEvents {
   'set-user-id': (userId: string) => void;
 }
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://real-time-chat-tmzf.onrender.com';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://rtc-chat-client.vercel.app';
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL);
 
 const MessageGroup = ({ messages, userId }: { messages: Message[], userId: string }) => {

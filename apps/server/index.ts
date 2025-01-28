@@ -21,7 +21,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: ["*","http://localhost:3000", "https://rtc-chat-client.vercel.app", "https://real-time-chat-tmzf.onrender.com"],
+    origin: ["http://localhost:3000", "https://rtc-chat-client.vercel.app"],
     methods: ["GET", "POST"],
     allowedHeaders: ["Access-Control-Allow-Origin"],
   }
