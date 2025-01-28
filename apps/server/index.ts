@@ -2,12 +2,13 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { randomBytes } from 'crypto';
+import cors from 'cors';
 
 interface Message {
   id: string;
   content: string;
   senderId: string;
-  sender:string;
+  sender: string;
   timestamp: Date;
 }
 
@@ -18,12 +19,21 @@ interface RoomData {
 }
 
 const app = express();
+
+// Enable CORS for Express (fixes CORS issues)
+app.use(cors({
+  origin: ["http://localhost:3000", "https://rtc-chat-client.vercel.app"],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: ["*","http://localhost:3000", "https://rtc-chat-client.vercel.app"],
+    origin: ["http://localhost:3000", "https://rtc-chat-client.vercel.app"],
     methods: ["GET", "POST"],
-    allowedHeaders: ["Access-Control-Allow-Origin"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   }
 });
 
@@ -31,13 +41,14 @@ const rooms = new Map<string, RoomData>();
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
-  
+
   socket.on('set-user-id', (userId: string) => {
+    console.log(`User ID set: ${userId}`);
   });
 
   socket.on('create-room', () => {
     const roomCode = randomBytes(3).toString('hex').toUpperCase();
-    rooms.set(roomCode, { 
+    rooms.set(roomCode, {
       users: new Set<string>(),
       messages: [],
       lastActive: Date.now()
@@ -49,7 +60,7 @@ io.on('connection', (socket) => {
     const parsedData = JSON.parse(data);
     const roomCode = parsedData.roomId;
     const room = rooms.get(roomCode);
-    
+
     if (!room) {
       socket.emit('error', 'Room not found');
       return;
@@ -58,12 +69,12 @@ io.on('connection', (socket) => {
     socket.join(roomCode);
     room.users.add(socket.id);
     room.lastActive = Date.now();
-    
+
     socket.emit('joined-room', { roomCode, messages: room.messages });
     io.to(roomCode).emit('user-joined', room.users.size);
   });
 
-  socket.on('send-message', ({ roomCode, message, userId ,name}) => {
+  socket.on('send-message', ({ roomCode, message, userId, name }) => {
     const room = rooms.get(roomCode);
     if (room) {
       room.lastActive = Date.now();
@@ -71,7 +82,7 @@ io.on('connection', (socket) => {
         id: randomBytes(4).toString('hex'),
         content: message,
         senderId: userId,
-        sender:name,
+        sender: name,
         timestamp: new Date()
       };
       room.messages.push(messageData);
@@ -107,4 +118,4 @@ setInterval(() => {
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-}); 
+});
